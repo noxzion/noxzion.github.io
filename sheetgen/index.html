@@ -6,122 +6,12 @@
     <title>Geometry Dash Collab Creator</title>
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 15px 20px;
-            background-color: #f5f8fa;
-            color: #2c3e50;
-        }
-        h1 {
-            color: #3498db;
-            text-align: center;
-            margin-bottom: 25px;
-            font-weight: 600;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .container {
-            background-color: white;
-            padding: 20px 20px 25px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-            border: 1px solid #e0e6ed;
-        }
-        label {
-            display: block;
-            margin: 10px 0 6px;
-            font-weight: 500;
-            color: #3498db;
-        }
-        input {
-            padding: 9px 10px;
-            border: 1px solid #d1d8e0;
-            border-radius: 6px;
-            width: 100%;
-            font-size: 15px;
-            transition: all 0.2s;
-            box-sizing: border-box;
-        }
-        input:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
-            outline: none;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 11px 22px;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        button:hover {
-            background-color: #2980b9;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .part-row {
-            background-color: #f8fafc;
-            border-radius: 8px;
-            padding: 16px 18px;
-            margin-bottom: 18px;
-            border: 1px solid #e0e6ed;
-            position: relative;
-        }
-        .removePart {
-            background-color: #e74c3c;
-            padding: 7px 14px;
-            font-size: 14px;
-            margin-top: 12px;
-        }
-        .time-inputs {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .time-inputs input {
-            width: 90px;
-        }
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 22px;
-        }
-        #previewContainer {
-            overflow-x: auto;
-        }
-        #previewTable table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        #previewTable th {
-            background-color: #3498db;
-            color: white;
-            padding: 10px;
-            text-align: left;
-        }
-        #previewTable td {
-            padding: 9px;
-            border-bottom: 1px solid #e0e6ed;
-        }
-        #previewTable tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="static/style.css" />
 </head>
 <body>
     <h1>Генератор таблиц для коллабов</h1>
-    <p style="text-align: center;">Оригинальная идея была создана Crash Team</p>
+    <p>Оригинальная идея была создана Crash Team</p>
     
     <div class="container">
         <h2>Основная информация</h2>
@@ -133,6 +23,7 @@
         <h2>Парты</h2>
         <div id="partsContainer"></div>
         <button id="addPart">+ Добавить парт</button>
+        <button id="autoAssignBtn">Авто распределить цвета и группы</button>
     </div>
     
     <div class="container">
@@ -146,6 +37,16 @@
         <div class="button-group">
             <button id="previewBtn">Предпросмотр</button>
             <button id="exportBtn">Экспорт в Excel</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="preset-controls" style="margin-top: 10px;">
+            <button id="savePresetBtn">Сохранить пресет</button>
+            <button id="deletePresetBtn">Удалить пресет</button>
+            <select id="presetSelect">
+                <option value="">Загрузить пресет...</option>
+            </select>
         </div>
     </div>
     
@@ -162,6 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('exportBtn');
     const previewContainer = document.getElementById('previewContainer');
     const previewTable = document.getElementById('previewTable');
+    const presetSelect = document.getElementById('presetSelect');
+    const savePresetBtn = document.getElementById('savePresetBtn');
+    const deletePresetBtn = document.getElementById('deletePresetBtn');
+    const autoAssignBtn = document.getElementById('autoAssignBtn');
 
     let partCount = 0;
 
@@ -208,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             part.querySelector('input[placeholder="Например: 1-100"]').id = `groupsRange${partNumber}`;
             part.querySelector('input[placeholder="Например: 1-20"]').id = `colorsRange${partNumber}`;
         });
+        partCount = parts.length;
     }
 
     addPartBtn.addEventListener('click', () => {
@@ -219,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const parts = partsContainer.querySelectorAll('.part-row');
         let partsData = [];
         parts.forEach((part, index) => {
-
             const startInput = part.querySelector('input[placeholder="Начало"]');
             const endInput = part.querySelector('input[placeholder="Конец"]');
             const gpInput = part.querySelector('input[placeholder="Введите имя гпшера"]');
@@ -263,110 +168,284 @@ document.addEventListener('DOMContentLoaded', () => {
         return partsData;
     }
 
+    function savePreset(name, data) {
+        const presets = JSON.parse(localStorage.getItem('presets') || '{}');
+        presets[name] = data;
+        localStorage.setItem('presets', JSON.stringify(presets));
+        loadPresets();
+    }
+
+    function loadPresets() {
+        const presets = JSON.parse(localStorage.getItem('presets') || '{}');
+        presetSelect.innerHTML = `<option value="">Загрузить пресет...</option>`;
+        Object.keys(presets).forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            presetSelect.appendChild(option);
+        });
+    }
+
+    function applyPreset(data) {
+        document.getElementById('collabName').value = data.collabName || '';
+        document.getElementById('gpColumn').value = data.gpColumn || 'Геймплей';
+        document.getElementById('decorColumn').value = data.decorColumn || 'Декор';
+
+        partsContainer.innerHTML = '';
+        partCount = 0;
+
+        data.parts.forEach(part => {
+            partCount++;
+            const partDiv = createPart(partCount);
+            partsContainer.appendChild(partDiv);
+            partDiv.querySelector('input[placeholder="Начало"]').value = part.start;
+            partDiv.querySelector('input[placeholder="Конец"]').value = part.end;
+            partDiv.querySelector('input[placeholder="Введите имя гпшера"]').value = part.gp;
+            partDiv.querySelector('input[placeholder="Введите имя декорщика"]').value = part.decor;
+            partDiv.querySelector('input[placeholder="Например: 1-100"]').value = part.groups;
+            partDiv.querySelector('input[placeholder="Например: 1-20"]').value = part.colors;
+        });
+    }
+
+    function createPreviewTable(collabName, parts, gpColumnName, decorColumnName) {
+        const table = document.createElement('table');
+        const caption = document.createElement('caption');
+        caption.textContent = collabName;
+        caption.style.fontWeight = '600';
+        caption.style.fontSize = '18px';
+        caption.style.marginBottom = '10px';
+        table.appendChild(caption);
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = ['Парт', 'Оффсет', gpColumnName, decorColumnName, 'Диапазон групп', 'Диапазон цветов'];
+        headers.forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        parts.forEach((part, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${part.start} — ${part.end}</td>
+                <td>${part.gp}</td>
+                <td>${part.decor}</td>
+                <td>${part.groups}</td>
+                <td>${part.colors}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        return table;
+    }
 
     previewBtn.addEventListener('click', () => {
         try {
-            const partsData = collectPartsData();
-            const gpColName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
-            const decorColName = document.getElementById('decorColumn').value.trim() || 'Декор';
             const collabName = document.getElementById('collabName').value.trim();
+            const gpColumnName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
+            const decorColumnName = document.getElementById('decorColumn').value.trim() || 'Декор';
 
             if (!collabName) {
-                alert('Введите название коллаба!');
+                alert('Пожалуйста, введите название коллаба');
                 return;
             }
 
-            let tableHTML = `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-                <thead>
-                    <tr style="background-color: #3498db; color: white;">
-                        <th>№</th>
-                        <th>Оффсет</th>
-                        <th>${gpColName}</th>
-                        <th>${decorColName}</th>
-                        <th>Группы</th>
-                        <th>Цвета</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+            const parts = collectPartsData();
 
-            partsData.forEach((part, index) => {
-                tableHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${part.start} - ${part.end}</td>
-                        <td>${part.gp}</td>
-                        <td>${part.decor}</td>
-                        <td>${part.groups}</td>
-                        <td>${part.colors}</td>
-                    </tr>`;
-            });
-
-            tableHTML += '</tbody></table>';
-
-            previewTable.innerHTML = `<h3>${collabName}</h3>` + tableHTML;
+            previewTable.innerHTML = '';
+            previewTable.appendChild(createPreviewTable(collabName, parts, gpColumnName, decorColumnName));
             previewContainer.classList.remove('hidden');
-        } catch (err) {
-
+        } catch (error) {
+            console.error(error);
         }
     });
+
+    function createExcel(collabName, parts, gpColumnName, decorColumnName) {
+        const workbook = new ExcelJS.Workbook();
+        const sheet = workbook.addWorksheet('Таблица');
+
+        sheet.addRow([collabName]);
+        sheet.mergeCells('A1:F1');
+        const titleCell = sheet.getCell('A1');
+        titleCell.font = { size: 14, bold: true };
+        titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+        const headerRow = sheet.addRow([
+            'Парт',
+            'Оффсет',
+            gpColumnName,
+            decorColumnName,
+            'Группы',
+            'Цвета'
+        ]);
+        headerRow.font = { bold: true };
+        headerRow.alignment = { horizontal: 'center' };
+
+        headerRow.eachCell(cell => {
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFCC00' }
+            };
+        });
+
+        parts.forEach((part, index) => {
+            const row = sheet.addRow([
+                index + 1,
+                `${part.start} — ${part.end}`,
+                part.gp,
+                part.decor,
+                part.groups,
+                part.colors
+            ]);
+
+            row.alignment = { vertical: 'middle', horizontal: 'center' };
+
+            // 🔹 Чередующийся серый цвет
+            const bgColor = index % 2 === 0 ? 'FFF2F2F2' : 'FFE6E6E6';
+            row.eachCell(cell => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: bgColor }
+                };
+            });
+        });
+
+        sheet.eachRow({ includeEmpty: false }, row => {
+            row.eachCell({ includeEmpty: false }, cell => {
+                cell.border = {
+                    top:    { style: 'thin' },
+                    left:   { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right:  { style: 'thin' }
+                };
+            });
+        });
+
+        const widths = [6, 15, 25, 25, 15, 15];
+        widths.forEach((w, i) => {
+            sheet.getColumn(i + 1).width = w;
+        });
+
+        return workbook.xlsx.writeBuffer();
+    }
+
 
     exportBtn.addEventListener('click', async () => {
         try {
-            const partsData = collectPartsData();
-            const gpColName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
-            const decorColName = document.getElementById('decorColumn').value.trim() || 'Декор';
             const collabName = document.getElementById('collabName').value.trim();
+            const gpColumnName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
+            const decorColumnName = document.getElementById('decorColumn').value.trim() || 'Декор';
 
             if (!collabName) {
-                alert('Введите название коллаба!');
+                alert('Пожалуйста, введите название коллаба');
                 return;
             }
 
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Коллаб');
+            const parts = collectPartsData();
 
-            worksheet.columns = [
-                { header: '№', key: 'number', width: 8 },
-                { header: 'Оффсет', key: 'time', width: 15 },
-                { header: gpColName, key: 'gp', width: 20 },
-                { header: decorColName, key: 'decor', width: 20 },
-                { header: 'Группы', key: 'groups', width: 15 },
-                { header: 'Цвета', key: 'colors', width: 15 },
-            ];
-
-            partsData.forEach((part, index) => {
-                worksheet.addRow({
-                    number: index + 1,
-                    time: `${part.start} - ${part.end}`,
-                    gp: part.gp,
-                    decor: part.decor,
-                    groups: part.groups,
-                    colors: part.colors,
-                });
-            });
-
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'FF3498DB' },
-            };
-
-            const buf = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            saveAs(blob, `${collabName.replace(/\s+/g, '_')}_collab.xlsx`);
-        } catch (err) {
-            alert('Ошибка при экспорте: ' + err.message);
+            const buffer = await createExcel(collabName, parts, gpColumnName, decorColumnName);
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, `${collabName}_table.xlsx`);
+        } catch (error) {
+            console.error(error);
         }
     });
 
-    addPartBtn.click();
+    presetSelect.addEventListener('change', () => {
+        const selected = presetSelect.value;
+        if (!selected) return;
+        const presets = JSON.parse(localStorage.getItem('presets') || '{}');
+        if (presets[selected]) {
+            applyPreset(presets[selected]);
+        }
+    });
+
+    savePresetBtn.addEventListener('click', () => {
+        const name = prompt('Введите имя пресета для сохранения');
+        if (!name) return;
+
+        try {
+            const collabName = document.getElementById('collabName').value.trim();
+            const gpColumnName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
+            const decorColumnName = document.getElementById('decorColumn').value.trim() || 'Декор';
+            const parts = collectPartsData();
+
+            savePreset(name, {
+                collabName,
+                gpColumn: gpColumnName,
+                decorColumn: decorColumnName,
+                parts
+            });
+            alert('Пресет сохранён!');
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    deletePresetBtn.addEventListener('click', () => {
+        const name = presetSelect.value;
+        if (!name) {
+            alert('Выберите пресет для удаления');
+            return;
+        }
+        if (!confirm(`Удалить пресет "${name}"?`)) return;
+        const presets = JSON.parse(localStorage.getItem('presets') || '{}');
+        delete presets[name];
+        localStorage.setItem('presets', JSON.stringify(presets));
+        loadPresets();
+        presetSelect.value = '';
+        alert('Пресет удалён!');
+    });
+
+    function parseRange(str) {
+        const parts = str.split('-').map(s => parseInt(s.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1]) && parts[0] <= parts[1]) {
+            return { start: parts[0], end: parts[1] };
+        }
+        return null;
+    }
+
+    function formatRange(range) {
+        return `${range.start}-${range.end}`;
+    }
+
+    function autoAssignGroupsAndColors() {
+        const parts = partsContainer.querySelectorAll('.part-row');
+        let groupStart = 1;
+        let colorStart = 1;
+
+        parts.forEach(part => {
+            const groupsInput = part.querySelector('input[placeholder="Например: 1-100"]');
+            const colorsInput = part.querySelector('input[placeholder="Например: 1-20"]');
+
+            let groupsRange = parseRange(groupsInput.value) || { start: 1, end: 50 };
+            let colorsRange = parseRange(colorsInput.value) || { start: 1, end: 75 };
+
+            const groupsLength = groupsRange.end - groupsRange.start + 1;
+            const colorsLength = colorsRange.end - colorsRange.start + 1;
+
+            groupsInput.value = formatRange({ start: groupStart, end: groupStart + groupsLength - 1 });
+            colorsInput.value = formatRange({ start: colorStart, end: colorStart + colorsLength - 1 });
+
+            groupStart += groupsLength;
+            colorStart += colorsLength;
+        });
+    }
+
+    autoAssignBtn.addEventListener('click', () => {
+        autoAssignGroupsAndColors();
+    });
+
+    loadPresets();
 });
 </script>
-    <footer style="text-align: center; padding: 15px 0; color: #7f8c8d; font-size: 14px; border-top: 1px solid #e0e6ed; margin-top: 30px;">
-        <a href="https://github.com/noxzion/noxzion.github.io/tree/main/sheetgen" target="_blank" rel="noopener noreferrer" style="color: #3498db; text-decoration: none;">
-            Исходный код проекта
-        </a>
-    </footer>
 </body>
 </html>

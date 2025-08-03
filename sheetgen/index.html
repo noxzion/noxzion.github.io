@@ -1,49 +1,49 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Geometry Dash Collab Creator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px 20px;
             background-color: #f5f8fa;
             color: #2c3e50;
         }
         h1 {
             color: #3498db;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-weight: 600;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
         .container {
             background-color: white;
-            padding: 25px;
+            padding: 20px 20px 25px 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             border: 1px solid #e0e6ed;
         }
         label {
             display: block;
-            margin: 12px 0 6px;
+            margin: 10px 0 6px;
             font-weight: 500;
             color: #3498db;
         }
         input {
-            padding: 10px 12px;
+            padding: 9px 10px;
             border: 1px solid #d1d8e0;
             border-radius: 6px;
             width: 100%;
             font-size: 15px;
             transition: all 0.2s;
+            box-sizing: border-box;
         }
         input:focus {
             border-color: #3498db;
@@ -53,7 +53,7 @@
         button {
             background-color: #3498db;
             color: white;
-            padding: 12px 24px;
+            padding: 11px 22px;
             border: none;
             border-radius: 6px;
             font-size: 15px;
@@ -70,28 +70,29 @@
         .part-row {
             background-color: #f8fafc;
             border-radius: 8px;
-            padding: 18px;
-            margin-bottom: 20px;
+            padding: 16px 18px;
+            margin-bottom: 18px;
             border: 1px solid #e0e6ed;
             position: relative;
         }
         .removePart {
             background-color: #e74c3c;
-            padding: 8px 16px;
+            padding: 7px 14px;
             font-size: 14px;
+            margin-top: 12px;
         }
         .time-inputs {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .time-inputs input {
-            width: 100px;
+            width: 90px;
         }
         .button-group {
             display: flex;
             gap: 15px;
-            margin-top: 25px;
+            margin-top: 22px;
         }
         #previewContainer {
             overflow-x: auto;
@@ -103,15 +104,18 @@
         #previewTable th {
             background-color: #3498db;
             color: white;
-            padding: 12px;
+            padding: 10px;
             text-align: left;
         }
         #previewTable td {
-            padding: 10px;
+            padding: 9px;
             border-bottom: 1px solid #e0e6ed;
         }
         #previewTable tr:nth-child(even) {
             background-color: #f8f9fa;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
@@ -122,24 +126,22 @@
     <div class="container">
         <h2>Основная информация</h2>
         <label for="collabName">Название коллаба:</label>
-        <input type="text" id="collabName" placeholder="Введите название коллаба">
+        <input type="text" id="collabName" placeholder="Введите название коллаба" />
     </div>
     
     <div class="container">
         <h2>Парты</h2>
-        <div id="partsContainer">
-
-        </div>
+        <div id="partsContainer"></div>
         <button id="addPart">+ Добавить парт</button>
     </div>
     
     <div class="container">
         <h2>Настройки таблицы</h2>
         <label for="gpColumn">Название колонки для гпшеров:</label>
-        <input type="text" id="gpColumn" placeholder="Геймплей" value="Геймплей">
+        <input type="text" id="gpColumn" placeholder="Геймплей" value="Геймплей" />
         
         <label for="decorColumn">Название колонки для декорщиков:</label>
-        <input type="text" id="decorColumn" placeholder="Декор" value="Декор">
+        <input type="text" id="decorColumn" placeholder="Декор" value="Декор" />
         
         <div class="button-group">
             <button id="previewBtn">Предпросмотр</button>
@@ -152,175 +154,214 @@
         <div id="previewTable"></div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const partsContainer = document.getElementById('partsContainer');
+    const addPartBtn = document.getElementById('addPart');
+    const previewBtn = document.getElementById('previewBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewTable = document.getElementById('previewTable');
 
-            const partsContainer = document.getElementById('partsContainer');
-            const addPartBtn = document.getElementById('addPart');
-            let partCount = 0;
-            
-            addPartBtn.addEventListener('click', function() {
-                partCount++;
-                const partDiv = document.createElement('div');
-                partDiv.className = 'part-row';
-                partDiv.innerHTML = `
-                    <h3 style="margin-top: 0; color: #3498db;">Парт ${partCount}</h3>
-                    <label>Оффсет:</label>
-                    <div class="time-inputs">
-                        <input type="number" id="partStart${partCount}" step="0.1" min="0" placeholder="Начало">
-                        <span>—</span>
-                        <input type="number" id="partEnd${partCount}" step="0.1" min="0" placeholder="Конец">
-                    </div>
-                    
-                    <label for="gpAuthor${partCount}">ГПшер:</label>
-                    <input type="text" id="gpAuthor${partCount}" placeholder="Введите имя гпшера">
-                    
-                    <label for="decorAuthor${partCount}">Декорщик:</label>
-                    <input type="text" id="decorAuthor${partCount}" placeholder="Введите имя декорщика">
-                    
-                    <label for="groupsRange${partCount}">Диапазон групп:</label>
-                    <input type="text" id="groupsRange${partCount}" placeholder="Например: 1-100">
-                    
-                    <label for="colorsRange${partCount}">Диапазон цветов:</label>
-                    <input type="text" id="colorsRange${partCount}" placeholder="Например: 1-20">
-                    
-                    <button class="removePart" data-part="${partCount}">Удалить парт</button>
-                `;
-                partsContainer.appendChild(partDiv);
-                
-                partDiv.querySelector('.removePart').addEventListener('click', function() {
-                    partsContainer.removeChild(partDiv);
-                    partCount--;
+    let partCount = 0;
 
-                    const parts = partsContainer.querySelectorAll('.part-row');
-                    parts.forEach((part, index) => {
-                        part.querySelector('h3').textContent = `Парт ${index + 1}`;
-                    });
-                });
-            });
-            
-            const previewBtn = document.getElementById('previewBtn');
-            const previewContainer = document.getElementById('previewContainer');
-            const previewTable = document.getElementById('previewTable');
-            
-            previewBtn.addEventListener('click', function() {
+    function createPart(partNumber) {
+        const partDiv = document.createElement('div');
+        partDiv.className = 'part-row';
+        partDiv.innerHTML = `
+            <h3 style="margin-top: 0; color: #3498db;">Парт ${partNumber}</h3>
+            <label>Оффсет:</label>
+            <div class="time-inputs">
+                <input type="number" id="partStart${partNumber}" step="0.1" min="0" placeholder="Начало" />
+                <span>—</span>
+                <input type="number" id="partEnd${partNumber}" step="0.1" min="0" placeholder="Конец" />
+            </div>
+            <label for="gpAuthor${partNumber}">ГПшер:</label>
+            <input type="text" id="gpAuthor${partNumber}" placeholder="Введите имя гпшера" />
+            <label for="decorAuthor${partNumber}">Декорщик:</label>
+            <input type="text" id="decorAuthor${partNumber}" placeholder="Введите имя декорщика" />
+            <label for="groupsRange${partNumber}">Диапазон групп:</label>
+            <input type="text" id="groupsRange${partNumber}" placeholder="Например: 1-100" />
+            <label for="colorsRange${partNumber}">Диапазон цветов:</label>
+            <input type="text" id="colorsRange${partNumber}" placeholder="Например: 1-20" />
+            <button class="removePart" data-part="${partNumber}">Удалить парт</button>
+        `;
+        partDiv.querySelector('.removePart').addEventListener('click', () => {
+            partsContainer.removeChild(partDiv);
+            updatePartsIndices();
+        });
+        return partDiv;
+    }
 
-                const collabName = document.getElementById('collabName').value || 'Без названия';
-                const gpColumn = document.getElementById('gpColumn').value || 'Геймплей';
-                const decorColumn = document.getElementById('decorColumn').value || 'Декор';
-                
-                const parts = [];
-                const partElements = partsContainer.querySelectorAll('.part-row');
-                partElements.forEach(partEl => {
-                    const partNum = partEl.querySelector('button').getAttribute('data-part');
-                    parts.push({
-                        start: document.getElementById(`partStart${partNum}`).value,
-                        end: document.getElementById(`partEnd${partNum}`).value,
-                        gpAuthor: document.getElementById(`gpAuthor${partNum}`).value,
-                        decorAuthor: document.getElementById(`decorAuthor${partNum}`).value,
-                        groupsRange: document.getElementById(`groupsRange${partNum}`).value,
-                        colorsRange: document.getElementById(`colorsRange${partNum}`).value
-                    });
-                });
+    function updatePartsIndices() {
+        const parts = partsContainer.querySelectorAll('.part-row');
+        parts.forEach((part, index) => {
+            const partNumber = index + 1;
+            part.querySelector('h3').textContent = `Парт ${partNumber}`;
+            const removeBtn = part.querySelector('.removePart');
+            removeBtn.setAttribute('data-part', partNumber);
 
-                let tableHtml = `<h3 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">${collabName}</h3>`;
-                tableHtml += '<table>';
-                tableHtml += '<thead><tr>';
-                tableHtml += '<th style="width: 50px;">№</th>';
-                tableHtml += '<th style="width: 120px;">Время (сек)</th>';
-                tableHtml += `<th>${gpColumn}</th>`;
-                tableHtml += `<th>${decorColumn}</th>`;
-                tableHtml += '<th style="width: 150px;">Группы</th>';
-                tableHtml += '<th style="width: 150px;">Цвета</th>';
-                tableHtml += '</tr></thead><tbody>';
-                
-                parts.forEach((part, index) => {
-                    const timeRange = part.start && part.end ? `${part.start} — ${part.end}` : '—';
-                    tableHtml += `<tr>
-                        <td style="text-align: center; font-weight: bold;">${index + 1}</td>
-                        <td style="text-align: center;">${timeRange}</td>
-                        <td>${part.gpAuthor || '—'}</td>
-                        <td>${part.decorAuthor || '—'}</td>
-                        <td style="text-align: center;">${part.groupsRange || '—'}</td>
-                        <td style="text-align: center;">${part.colorsRange || '—'}</td>
-                    </tr>`;
-                });
-                
-                tableHtml += '</tbody></table>';
-                previewTable.innerHTML = tableHtml;
-                previewContainer.classList.remove('hidden');
-            });
+            part.querySelector('input[placeholder="Начало"]').id = `partStart${partNumber}`;
+            part.querySelector('input[placeholder="Конец"]').id = `partEnd${partNumber}`;
+            part.querySelector('input[placeholder="Введите имя гпшера"]').id = `gpAuthor${partNumber}`;
+            part.querySelector('input[placeholder="Введите имя декорщика"]').id = `decorAuthor${partNumber}`;
+            part.querySelector('input[placeholder="Например: 1-100"]').id = `groupsRange${partNumber}`;
+            part.querySelector('input[placeholder="Например: 1-20"]').id = `colorsRange${partNumber}`;
+        });
+    }
 
-            const exportBtn = document.getElementById('exportBtn');
-            
-            exportBtn.addEventListener('click', function() {
+    addPartBtn.addEventListener('click', () => {
+        partCount++;
+        partsContainer.appendChild(createPart(partCount));
+    });
 
-                const collabName = document.getElementById('collabName').value || 'Без названия';
-                const gpColumn = document.getElementById('gpColumn').value || 'Геймплей';
-                const decorColumn = document.getElementById('decorColumn').value || 'Декор';
+    function collectPartsData() {
+        const parts = partsContainer.querySelectorAll('.part-row');
+        let partsData = [];
+        parts.forEach((part, index) => {
 
-                const parts = [];
-                const partElements = partsContainer.querySelectorAll('.part-row');
-                partElements.forEach(partEl => {
-                    const partNum = partEl.querySelector('button').getAttribute('data-part');
-                    parts.push({
-                        number: partNum,
-                        start: document.getElementById(`partStart${partNum}`).value,
-                        end: document.getElementById(`partEnd${partNum}`).value,
-                        gpAuthor: document.getElementById(`gpAuthor${partNum}`).value,
-                        decorAuthor: document.getElementById(`decorAuthor${partNum}`).value,
-                        groupsRange: document.getElementById(`groupsRange${partNum}`).value,
-                        colorsRange: document.getElementById(`colorsRange${partNum}`).value
-                    });
-                });
+            const startInput = part.querySelector('input[placeholder="Начало"]');
+            const endInput = part.querySelector('input[placeholder="Конец"]');
+            const gpInput = part.querySelector('input[placeholder="Введите имя гпшера"]');
+            const decorInput = part.querySelector('input[placeholder="Введите имя декорщика"]');
+            const groupsInput = part.querySelector('input[placeholder="Например: 1-100"]');
+            const colorsInput = part.querySelector('input[placeholder="Например: 1-20"]');
 
-                const wb = XLSX.utils.book_new();
+            if (!startInput || !endInput || !gpInput || !decorInput || !groupsInput || !colorsInput) {
+                throw new Error('Некорректная структура партa');
+            }
 
-                const wsData = [
+            const start = startInput.value.trim();
+            const end = endInput.value.trim();
+            const gp = gpInput.value.trim();
+            const decor = decorInput.value.trim();
+            const groups = groupsInput.value.trim();
+            const colors = colorsInput.value.trim();
 
-                    [collabName, '', '', '', '', ''],
-                    [],
+            if (start === '' || end === '') {
+                alert(`Пожалуйста, заполните поля "Начало" и "Конец" для партa ${index + 1}`);
+                throw new Error('Заполните все поля времени');
+            }
+            if (isNaN(parseFloat(start)) || isNaN(parseFloat(end))) {
+                alert(`Начало и Конец должны быть числами в партe ${index + 1}`);
+                throw new Error('Неверный формат времени');
+            }
+            if (parseFloat(start) > parseFloat(end)) {
+                alert(`Начало не может быть больше Конца в партe ${index + 1}`);
+                throw new Error('Неверный диапазон времени');
+            }
 
-                    ['№', 'Время (сек)', gpColumn, decorColumn, 'Группы', 'Цвета'],
-
-                    ...parts.map(part => [
-                        part.number,
-                        part.start && part.end ? `${part.start}-${part.end}` : '',
-                        part.gpAuthor || '',
-                        part.decorAuthor || '',
-                        part.groupsRange || '',
-                        part.colorsRange || ''
-                    ])
-                ];
-
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                
-
-                ws['!cols'] = [
-                    {wch: 5},
-                    {wch: 12},
-                    {wch: 25},
-                    {wch: 25},
-                    {wch: 15},
-                    {wch: 15}
-                ];
-                
-                ws['!merges'] = [
-                    {s: {r: 0, c: 0}, e: {r: 0, c: 5}}
-                ];
-                
-                XLSX.utils.book_append_sheet(wb, ws, "Коллаб");
-                
-                const wbout = XLSX.write(wb, {
-                    bookType: 'xlsx', 
-                    type: 'array',
-                    bookSST: true
-                });
-                
-                saveAs(new Blob([wbout], {type: "application/octet-stream"}), 
-                      `${collabName.replace(/[^a-zа-яё0-9]/gi, '_')}_collab.xlsx`);
+            partsData.push({
+                start: parseFloat(start),
+                end: parseFloat(end),
+                gp,
+                decor,
+                groups,
+                colors,
             });
         });
-    </script>
+        return partsData;
+    }
+
+
+    previewBtn.addEventListener('click', () => {
+        try {
+            const partsData = collectPartsData();
+            const gpColName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
+            const decorColName = document.getElementById('decorColumn').value.trim() || 'Декор';
+            const collabName = document.getElementById('collabName').value.trim();
+
+            if (!collabName) {
+                alert('Введите название коллаба!');
+                return;
+            }
+
+            let tableHTML = `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr style="background-color: #3498db; color: white;">
+                        <th>№</th>
+                        <th>Оффсет</th>
+                        <th>${gpColName}</th>
+                        <th>${decorColName}</th>
+                        <th>Группы</th>
+                        <th>Цвета</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            partsData.forEach((part, index) => {
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${part.start} - ${part.end}</td>
+                        <td>${part.gp}</td>
+                        <td>${part.decor}</td>
+                        <td>${part.groups}</td>
+                        <td>${part.colors}</td>
+                    </tr>`;
+            });
+
+            tableHTML += '</tbody></table>';
+
+            previewTable.innerHTML = `<h3>${collabName}</h3>` + tableHTML;
+            previewContainer.classList.remove('hidden');
+        } catch (err) {
+
+        }
+    });
+
+    exportBtn.addEventListener('click', async () => {
+        try {
+            const partsData = collectPartsData();
+            const gpColName = document.getElementById('gpColumn').value.trim() || 'Геймплей';
+            const decorColName = document.getElementById('decorColumn').value.trim() || 'Декор';
+            const collabName = document.getElementById('collabName').value.trim();
+
+            if (!collabName) {
+                alert('Введите название коллаба!');
+                return;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Коллаб');
+
+            worksheet.columns = [
+                { header: '№', key: 'number', width: 8 },
+                { header: 'Оффсет', key: 'time', width: 15 },
+                { header: gpColName, key: 'gp', width: 20 },
+                { header: decorColName, key: 'decor', width: 20 },
+                { header: 'Группы', key: 'groups', width: 15 },
+                { header: 'Цвета', key: 'colors', width: 15 },
+            ];
+
+            partsData.forEach((part, index) => {
+                worksheet.addRow({
+                    number: index + 1,
+                    time: `${part.start} - ${part.end}`,
+                    gp: part.gp,
+                    decor: part.decor,
+                    groups: part.groups,
+                    colors: part.colors,
+                });
+            });
+
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF3498DB' },
+            };
+
+            const buf = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            saveAs(blob, `${collabName.replace(/\s+/g, '_')}_collab.xlsx`);
+        } catch (err) {
+            alert('Ошибка при экспорте: ' + err.message);
+        }
+    });
+
+    addPartBtn.click();
+});
+</script>
 </body>
 </html>

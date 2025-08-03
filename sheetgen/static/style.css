@@ -1,0 +1,159 @@
+/* Подключи это в HTML:
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+*/
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+h1, h2 {
+    font-family: 'Inter', sans-serif;
+    color: #e0e0e0;
+    font-weight: 600;
+    border-bottom: 1px solid #333;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+}
+
+.container {
+    background-color: #212121;
+    border: 1px solid #333;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: #bbbbbb;
+    margin: 10px;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #444;
+    background-color: #161616;
+    color: #e0e0e0;
+    border-radius: 2px;
+    width: 100%;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+button:hover {
+    background-color: #2563eb;
+    box-shadow: 0 0 4px #2563eb55;
+}
+
+.removePart {
+    background-color: #c0392b;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.time-inputs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.time-inputs input {
+    width: 100px;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+#previewTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+#previewTable th {
+    background-color: #2c2c2c;
+    color: #f0f0f0;
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #444;
+}
+
+#previewTable td {
+    padding: 8px;
+    border-bottom: 1px solid #333;
+}
+
+#previewTable tr:nth-child(even) {
+    background-color: #1e1e1e;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0 0;
+    color: #666;
+    font-size: 13px;
+    border-top: 1px solid #333;
+    margin-top: 30px;
+}
+
+footer a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+select {
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+option {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 6 16px;
+    background-color: white;
+    color: #333;
+}
+
+select:focus {
+    border-color: #3498db;
+    outline: none;
+    background-color: #fff;
+}
